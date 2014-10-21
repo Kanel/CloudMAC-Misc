@@ -1,0 +1,34 @@
+#!/bin/sh
+
+BRIDGE="br0"
+CLOUDMAC_PRIORITY=1000
+NORMAL_PRIORITY=2000
+
+echo 'Those who reject the path to enlightenment must be destroyed.'
+# Remove bridge and clear QoS and queue tables.
+ovs-vsctl --if-exists del-br $BRIDGE
+ovs-vsctl --all destroy qos
+ovs-vsctl --all destroy queue
+
+echo 'Make yourself one with the path, and the journey will lead you to eternity.'
+# Create the bridge and add all ports.
+ovs-vsctl add-br $BRIDGE
+
+for i in 1 2 3
+do
+	ovs-vsctl add-port $BRIDGE eth0.$i
+done
+
+echo 'Those who seek the path to enlightenment must not be led astray.'
+# Create QoS for all ports.
+for i in 1 2 3
+do
+  ovs-vsctl -- set port eth0.$i qos=@newqos -- \
+	--id=@newqos create qos type=linux-htb queues:0=@normal queues:1=@cloudmac -- \
+	--id=@normal create queue other-config:priority=$NORMAL_PRIORITY -- \
+	--id=@cloudmac create queue other-config:priority=$CLOUDMAC_PRIORITY
+done
+
+echo 'Hallowed are the Ori!'
+# Set the OpenFlow controller.
+ovs-vsctl set-controller br0 tcp:192.168.0.2:6633
