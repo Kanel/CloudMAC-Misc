@@ -3,6 +3,7 @@
 BRIDGE="br0"
 CLOUDMAC_PRIORITY=1000
 NORMAL_PRIORITY=2000
+THROUGHPUT=1000000000
 
 echo 'Those who reject the path to enlightenment must be destroyed.'
 # Remove bridge and clear QoS and queue tables.
@@ -23,9 +24,9 @@ echo 'Those who seek the path to enlightenment must not be led astray.'
 ovs-vsctl -- set port eth0.1 qos=@newqos \
           -- set port eth0.2 qos=@newqos \
           -- set port eth0.3 qos=@newqos \
-          -- --id=@newqos create qos type=linux-htb queues:0=@normal queues:1=@cloudmac \
-          -- --id=@normal create queue other-config:priority=$NORMAL_PRIORITY \
-          -- --id=@cloudmac create queue other-config:priority=$CLOUDMAC_PRIORITY
+          -- --id=@newqos create qos type=linux-htb queues:0=@normal queues:1=@cloudmac other-config:max-rate=$THROUGHPUT \
+          -- --id=@normal create queue other-config:priority=$NORMAL_PRIORITY other-config:max-rate=$THROUGHPUT \
+          -- --id=@cloudmac create queue other-config:priority=$CLOUDMAC_PRIORITY other-config:max-rate=$THROUGHPUT
                                                                                        
 echo 'Hallowed are the Ori!'                                                 
 # Set the OpenFlow controller.                                              
