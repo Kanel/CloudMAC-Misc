@@ -25,8 +25,8 @@ ovs-vsctl -- set port eth0.1 qos=@newqos \
           -- set port eth0.2 qos=@newqos \
           -- set port eth0.3 qos=@newqos \
           -- --id=@newqos create qos type=linux-htb queues:0=@normal queues:1=@cloudmac other-config:max-rate=$THROUGHPUT \
-          -- --id=@normal create queue other-config:priority=$NORMAL_PRIORITY other-config:max-rate=$THROUGHPUT \
-          -- --id=@cloudmac create queue other-config:priority=$CLOUDMAC_PRIORITY other-config:max-rate=$THROUGHPUT
+          -- --id=@normal create queue other-config:priority=$NORMAL_PRIORITY other-config:min-rate=0 \
+          -- --id=@cloudmac create queue other-config:priority=$CLOUDMAC_PRIORITY other-config:min-rate=$THROUGHPUT
                                                                                        
 echo 'Hallowed are the Ori!'                                                 
 # Set the OpenFlow controller.                                              
