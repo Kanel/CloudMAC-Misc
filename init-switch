@@ -1,9 +1,9 @@
 #!/bin/sh
 
 BRIDGE="br0"
-CLOUDMAC_PRIORITY=1000
-NORMAL_PRIORITY=2000
-THROUGHPUT=1000000000
+CLOUDMAC_PRIORITY=1
+NORMAL_PRIORITY=9
+THROUGHPUT=450000000
 
 echo 'Those who reject the path to enlightenment must be destroyed.'
 # Remove bridge and clear QoS and queue tables.
@@ -22,12 +22,21 @@ ovs-vsctl add-port $BRIDGE eth0.3
 echo 'Those who seek the path to enlightenment must not be led astray.'
 # Create QoS for all ports.                                            
 ovs-vsctl -- set port eth0.1 qos=@newqos \
-          -- set port eth0.2 qos=@newqos \
-          -- set port eth0.3 qos=@newqos \
           -- --id=@newqos create qos type=linux-htb queues:0=@normal queues:1=@cloudmac other-config:max-rate=$THROUGHPUT \
-          -- --id=@normal create queue other-config:priority=$NORMAL_PRIORITY other-config:min-rate=0 \
-          -- --id=@cloudmac create queue other-config:priority=$CLOUDMAC_PRIORITY other-config:min-rate=$THROUGHPUT
-                                                                                       
+          -- --id=@normal create queue other-config:priority=$NORMAL_PRIORITY  other-config:min-rate=$THROUGHPUT  other-config:max-rate=$THROUGHPUT \
+          -- --id=@cloudmac create queue other-config:priority=$CLOUDMAC_PRIORITY other-config:min-rate=$THROUGHPUT other-config:max-rate=$THROUGHPUT
+
+ovs-vsctl -- set port eth0.2 qos=@newqos \
+          -- --id=@newqos create qos type=linux-htb queues:0=@normal queues:1=@cloudmac other-config:max-rate=$THROUGHPUT \
+          -- --id=@normal create queue other-config:priority=$NORMAL_PRIORITY  other-config:min-rate=$THROUGHPUT  other-config:max-rate=$THROUGHPUT \
+          -- --id=@cloudmac create queue other-config:priority=$CLOUDMAC_PRIORITY other-config:min-rate=$THROUGHPUT other-config:max-rate=$THROUGHPUT
+  
+ovs-vsctl -- set port eth0.3 qos=@newqos \
+          -- --id=@newqos create qos type=linux-htb queues:0=@normal queues:1=@cloudmac other-config:max-rate=$THROUGHPUT \
+          -- --id=@normal create queue other-config:priority=$NORMAL_PRIORITY  other-config:min-rate=$THROUGHPUT  other-config:max-rate=$THROUGHPUT \
+          -- --id=@cloudmac create queue other-config:priority=$CLOUDMAC_PRIORITY other-config:min-rate=$THROUGHPUT other-config:max-rate=$THROUGHPUT
+    
+                                                                                     
 echo 'Hallowed are the Ori!'                                                 
 # Set the OpenFlow controller.                                              
 ovs-vsctl set-controller br0 tcp:192.168.0.2:6633
