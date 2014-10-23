@@ -19,16 +19,16 @@ for i in 1 2 3
 do
     ovs-vsctl add-port $BRIDGE eth0.$i
 done
-                                                                       
+
 echo 'Those who seek the path to enlightenment must not be led astray.'
 # Create QoS for all ports.                                            
 
 for i in 1 2 3
 do
-ovs-vsctl -- set port eth0.1 qos=@newqos \
-          -- --id=@newqos create qos type=linux-htb queues:0=@normal queues:1=@cloudmac other-config:max-rate=$THROUGHPUT \
-          -- --id=@normal create queue other-config:priority=$NORMAL_PRIORITY  other-config:min-rate=$THROUGHPUT  other-config:max-rate=$THROUGHPUT \
-          -- --id=@cloudmac create queue other-config:priority=$CLOUDMAC_PRIORITY other-config:min-rate=$THROUGHPUT other-config:max-rate=$THROUGHPUT
+        ovs-vsctl -- set port eth0.1 qos=@newqos \
+                  -- --id=@newqos create qos type=linux-htb queues:0=@normal queues:1=@cloudmac other-config:max-rate=$THROUGHPUT \
+                  -- --id=@normal create queue other-config:priority=$NORMAL_PRIORITY  other-config:min-rate=$THROUGHPUT  other-config:max-rate=$THROUGHPUT \
+                  -- --id=@cloudmac create queue other-config:priority=$CLOUDMAC_PRIORITY other-config:min-rate=$THROUGHPUT other-config:max-rate=$THROUGHPUT
 done
 
 echo 'Hallowed are the Ori!'                                                 
