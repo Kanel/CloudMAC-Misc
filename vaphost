@@ -1,0 +1,119 @@
+#!/usr/bin/python
+import os, sys
+import subprocess
+import signal
+import time
+
+if os.geteuid() != 0:
+        exit("You need to be root to run this. ")
+
+defoptions = ["--channel", "3",
+              "--driver-root", os.getenv("HOME") + "/cloudmac-pox/compat-wireless-vap",
+              "--radios", "1",
+              "--vapip", "10.0",
+              "--ssid", "GATE",
+              "--hostapd", os.getenv("HOME") + "/cloudmac-pox/hostapd/hostapd-0.7.3/hostapd/hostapd",
+              "--hostapd-args", ""]
+		
+
+def getoption(optname):
+        if optname in sys.argv:
+                return sys.argv[sys.argv.index(optname) + 1]
+
+	if optname in defoptions:
+		return defoptions[defoptions.index(optname) + 1]
+	exit("Missing option '%s'. " % optname)
+
+def run(cmd):
+	proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
+	(out, err) = proc.communicate()
+	return out
+
+def shutdown():
+	run("killall hostapd")
+	print "Unloading Drivers.."
+	run("rmmod openvswitch_mod.ko")
+	run("rmmod mac80211_hwsim.ko")
+	run("rmmod mac80211.ko")
+	run("rmmod cfg80211.ko")
+	run("rmmod compat.ko")
+
+def loaddriver():
+	print "Loading mac80211_hwsim driver.."
+	run("dmesg -c")
+	run("modprobe pcmcia")
+	run("insmod " + bpdir + "/compat/compat.ko")
+	run("insmod " + bpdir + "/net/wireless/cfg80211.ko")
+	run("insmod " + bpdir + "/net/mac80211/mac80211.ko")
+	run("insmod " + bpdir + "/drivers/net/wireless/mac80211_hwsim.ko radios=%s" % radios)
+
+def stopovs():
+	run("service openvswitch-switch stop")
+
+def startovs():
+	run("service openvswitch-switch start")
+	run("ovs-vsctl del-br br0")
+	run("ovs-vsctl add-br br0")
+	run("ovs-vsctl add-port br0 cloud0") 
+	run("ovs-vsctl add-port br0 eth2")
+	run("ifconfig eth2 up")
+	run("ifconfig hwsim0 up")
+	run("ifconfig cloud0 up")
+	
+	for x in range(0, int(radios)):
+        	run("ifconfig wlan%d %s.%d.1" % (x, vapip, x))	
+        	run("route add -net %s.%d.0 netmask 255.255.255.0 dev wlan%d" % (vapip, x, x))
+
+def generateconfig():
+	for num in range(0, int(radios)):
+	        bssid =  ':'.join([(('0a0b%08x' % pow(2, min(num, 16)))[i:i+2]) for i in range(0, 12, 2)])
+
+	        with open("/tmp/hostapd-wlan%d.conf" % num, 'w') as file:
+			file.write("driver=nl80211\n")
+               		file.write("ssid=%s\n" % ssid)
+               		file.write("interface=wlan%d\n" % num)
+               		file.write("channel=%d\n" % channel)
+               		file.write("bssid=%s\n" % bssid)
+			file.write("hw_mode=g\n");
+			file.write("supported_rates=10 20 55 90 110 60 120 180 240 360 480 540\n")
+			file.write("basic_rates=10 20 55 90 110 60 120 180 240 360 480 540\n")
+
+def startvaps():
+	for num in range(0, int(radios)):
+		subprocess.Popen("%s %s /tmp/hostapd-wlan%d.conf" % (hostapd, hostapdargs, num), shell=True, close_fds=True)
+
+def signalhandler(signal, frame):
+        print('\nShutting down!')
+        sys.exit(0)
+
+hostapd = getoption("--hostapd")
+hostapdargs = getoption("--hostapd-args")
+bpdir = getoption("--driver-root")
+radios = int(getoption("--radios"))
+ssid = getoption("--ssid")
+channel = int(getoption("--channel"))
+vapip = getoption("--vapip")
+
+print("Options:")
+print("--------")
+print("Hostapd: %s" % hostapd)
+print("Hostapd Arguments: %s" % hostapdargs)
+print("Driver Root: %s" % bpdir)
+print("Radios: %d"% radios)
+print("SSID: %s" % ssid)
+print("Channel: %d" % channel)
+print("VAP IP: %s" % vapip)
+print("--------")
+
+shutdown()
+stopovs()
+loaddriver()
+startovs()
+generateconfig()
+startvaps()
+
+time.sleep(5)
+print('Press Ctrl+C to shutdown')
+
+signal.signal(signal.SIGINT, signalhandler)
+signal.pause() # The subprocesses will not stop unless Ctrl+C is used before the script finishes.
