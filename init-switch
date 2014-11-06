@@ -3,7 +3,7 @@
 BRIDGE="br0"
 CLOUDMAC_PRIORITY=1
 NORMAL_PRIORITY=9
-THROUGHPUT=450000000
+THROUGHPUT=200000000
 
 echo 'Those who reject the path to enlightenment must be destroyed.'
 # Remove bridge and clear QoS and queue tables.
@@ -27,8 +27,8 @@ for i in 1 2 3
 do
         ovs-vsctl -- set port eth0.1 qos=@newqos \
                   -- --id=@newqos create qos type=linux-htb queues:0=@normal queues:1=@cloudmac other-config:max-rate=$THROUGHPUT \
-                  -- --id=@normal create queue other-config:priority=$NORMAL_PRIORITY  other-config:min-rate=$THROUGHPUT  other-config:max-rate=$THROUGHPUT \
-                  -- --id=@cloudmac create queue other-config:priority=$CLOUDMAC_PRIORITY other-config:min-rate=$THROUGHPUT other-config:max-rate=$THROUGHPUT
+                  -- --id=@normal create queue other-config:priority=$NORMAL_PRIORITY \
+                  -- --id=@cloudmac create queue other-config:priority=$CLOUDMAC_PRIORITY
 done
 
 echo 'Hallowed are the Ori!'                                                 
