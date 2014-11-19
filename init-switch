@@ -14,6 +14,7 @@ ovs-vsctl --all destroy queue
 echo 'Make yourself one with the path, and the journey will lead you to eternity.'
 # Create the bridge and add all ports.
 ovs-vsctl add-br $BRIDGE
+ovs-vsctl set bridge br0 protocols=OpenFlow13
 
 for i in 1 2 3
 do
