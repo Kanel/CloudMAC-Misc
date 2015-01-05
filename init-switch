@@ -1,7 +1,10 @@
 #!/bin/sh
 
 BRIDGE="br0"
-CLOUDMAC_PRIORITY=1
+CLOUDMAC_PRIORITY_1=1
+CLOUDMAC_PRIORITY_2=2
+CLOUDMAC_PRIORITY_3=3
+CLOUDMAC_PRIORITY_4=4
 NORMAL_PRIORITY=9
 THROUGHPUT=200000000
 
@@ -27,9 +30,12 @@ echo 'Those who seek the path to enlightenment must not be led astray.'
 for i in 1 2 3
 do
         ovs-vsctl -- set port eth0.1 qos=@newqos \
-                  -- --id=@newqos create qos type=linux-htb queues:0=@normal queues:1=@cloudmac other-config:max-rate=$THROUGHPUT \
+                  -- --id=@newqos create qos type=linux-htb queues:0=@normal queues:1=@cloudmac_1 queues:2=@cloudmac_2 queues:3=@cloudmac_3 queues:4=@cloudmac_4 other-config:max-rate=$THROUGHPUT \
                   -- --id=@normal create queue other-config:priority=$NORMAL_PRIORITY \
-                  -- --id=@cloudmac create queue other-config:priority=$CLOUDMAC_PRIORITY
+                  -- --id=@cloudmac_1 create queue other-config:priority=$CLOUDMAC_PRIORITY_1 \
+                  -- --id=@cloudmac_2 create queue other-config:priority=$CLOUDMAC_PRIORITY_2 \
+                  -- --id=@cloudmac_3 create queue other-config:priority=$CLOUDMAC_PRIORITY_3 \
+                  -- --id=@cloudmac_4 create queue other-config:priority=$CLOUDMAC_PRIORITY_4 
 done
 
 echo 'Hallowed are the Ori!'                                                 
