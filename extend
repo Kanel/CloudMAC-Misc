@@ -1,0 +1,25 @@
+#!/bin/sh                                                                                                                                                                                                    
+
+IP=192.168.0.50                                                                                                                                                                                              
+PORT=6343                                                                                                                                                                                                    
+MAC=01:02:03:04:05:06                                                                                                                                                                                        
+BRIDGE=br0                                                                                                                                                                                                   
+HEADER_SIZE=128                                                                                                                                                                                              
+SAMPLING=32                                                                                                                                                                                                  
+POLLING=1                                                                                                                                                                                                    
+
+./init                                                                                                                                                                                                       
+
+echo "Truth eludes he who does not seek it with both eyes wide."                                                                                                                                             
+# Map IP to MAC.                                                                                                                                                                                             
+arp -s $IP $MAC                                                                                                                                                                                              
+
+echo "Guide us on the path that we may triumph over the enemy of our salvation and be with you in the end of ends on the planes of enlightenment."                                                           
+# Force the sFlow packets to be sent into the bridge.                                                                                                                                                        
+route add -net $IP netmask 255.255.255.255 dev $BRIDGE                                                                                                                                                       
+
+echo "Those who reach enlightenment shall rejoice with the Ori forever."                                                                                                                                     
+# Activate sFlow.                                                                                                                                                                                            
+ovs-vsctl -- \                                                                                                                                                                                               
+          --id=@sflow create sflow agent=$BRIDGE target=\"$IP:$PORT\" header=$HEADER_SIZE sampling=$SAMPLING polling=$POLLING \                                                                              
+          -- set bridge $BRIDGE sflow=@sflow   
