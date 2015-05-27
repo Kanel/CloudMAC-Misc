@@ -1,12 +1,12 @@
 #!/bin/sh
 
 BRIDGE="br0"
-CLOUDMAC_PRIORITY_1=1
-CLOUDMAC_PRIORITY_2=2
-CLOUDMAC_PRIORITY_3=3
-CLOUDMAC_PRIORITY_4=4
-NORMAL_PRIORITY=9
-THROUGHPUT=200000000
+CLOUDMAC_PRIORITY1=4
+CLOUDMAC_PRIORITY2=2
+CLOUDMAC_PRIORITY3=3
+CLOUDMAC_PRIORITY4=7
+THROUGHPUT=100000000
+THROUGHPUT2=10000000
 
 echo 'Those who reject the path to enlightenment must be destroyed.'
 # Remove bridge and clear QoS and queue tables.
@@ -19,25 +19,33 @@ echo 'Make yourself one with the path, and the journey will lead you to eternity
 ovs-vsctl add-br $BRIDGE
 #ovs-vsctl set bridge br0 protocols=OpenFlow13
 
-for i in 1 2 3
-do
-    ovs-vsctl add-port $BRIDGE eth0.$i
-done
+ovs-vsctl add-port $BRIDGE eth0.1
+ovs-vsctl add-port $BRIDGE eth0.2
+ovs-vsctl add-port $BRIDGE eth0.3
 
 echo 'Those who seek the path to enlightenment must not be led astray.'
-# Create QoS for all ports.                                            
+# Create QoS for all ports.
+ovs-vsctl -- set port eth0.1 qos=@newqos \
+-- --id=@newqos create qos type=linux-htb queues:0=@cloudmac1 queues:1=@cloudmac2 queues:2=@cloudmac3 queues:3=@cloudmac4 other-config:max-rate=$THROUGHPUT other-config:min-rate=$THROUGHPUT \
+-- --id=@cloudmac1 create queue other-config:priority=$CLOUDMAC_PRIORITY1 \
+-- --id=@cloudmac2 create queue other-config:priority=$CLOUDMAC_PRIORITY2 \
+-- --id=@cloudmac3 create queue other-config:priority=$CLOUDMAC_PRIORITY3 \
+-- --id=@cloudmac4 create queue other-config:priority=$CLOUDMAC_PRIORITY4
 
-for i in 1 2 3
-do
-        ovs-vsctl -- set port eth0.1 qos=@newqos \
-                  -- --id=@newqos create qos type=linux-htb queues:0=@normal queues:1=@cloudmac_1 queues:2=@cloudmac_2 queues:3=@cloudmac_3 queues:4=@cloudmac_4 other-config:max-rate=$THROUGHPUT \
-                  -- --id=@normal create queue other-config:priority=$NORMAL_PRIORITY \
-                  -- --id=@cloudmac_1 create queue other-config:priority=$CLOUDMAC_PRIORITY_1 \
-                  -- --id=@cloudmac_2 create queue other-config:priority=$CLOUDMAC_PRIORITY_2 \
-                  -- --id=@cloudmac_3 create queue other-config:priority=$CLOUDMAC_PRIORITY_3 \
-                  -- --id=@cloudmac_4 create queue other-config:priority=$CLOUDMAC_PRIORITY_4 
-done
+ovs-vsctl -- set port eth0.2 qos=@newqos \
+-- --id=@newqos create qos type=linux-htb queues:0=@cloudmac1 queues:1=@cloudmac2 queues:2=@cloudmac3 queues:3=@cloudmac4 other-config:max-rate=$THROUGHPUT other-config:min-rate=$THROUGHPUT \
+-- --id=@cloudmac1 create queue other-config:priority=$CLOUDMAC_PRIORITY1 \
+-- --id=@cloudmac2 create queue other-config:priority=$CLOUDMAC_PRIORITY2 \
+-- --id=@cloudmac3 create queue other-config:priority=$CLOUDMAC_PRIORITY3 \
+-- --id=@cloudmac4 create queue other-config:priority=$CLOUDMAC_PRIORITY4
 
-echo 'Hallowed are the Ori!'                                                 
-# Set the OpenFlow controller.                                              
-ovs-vsctl set-controller br0 tcp:192.168.0.2:6633
+ovs-vsctl -- set port eth0.3 qos=@newqos \
+-- --id=@newqos create qos type=linux-htb queues:0=@cloudmac1 queues:1=@cloudmac2 queues:2=@cloudmac3 queues:3=@cloudmac4 other-config:max-rate=$THROUGHPUT other-config:min-rate=$THROUGHPUT \
+-- --id=@cloudmac1 create queue other-config:priority=$CLOUDMAC_PRIORITY1 \
+-- --id=@cloudmac2 create queue other-config:priority=$CLOUDMAC_PRIORITY2 \
+-- --id=@cloudmac3 create queue other-config:priority=$CLOUDMAC_PRIORITY3 \
+-- --id=@cloudmac4 create queue other-config:priority=$CLOUDMAC_PRIORITY4
+
+echo 'Hallowed are the Ori!'
+# Set the OpenFlow controller.
+#ovs-vsctl set-controller br0 tcp:192.168.63.172:6633
