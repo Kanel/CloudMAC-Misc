@@ -48,4 +48,4 @@ ovs-vsctl -- set port eth0.3 qos=@newqos \
 
 echo 'Hallowed are the Ori!'
 # Set the OpenFlow controller.
-#ovs-vsctl set-controller br0 tcp:192.168.63.172:6633
+ovs-vsctl set-controller br0 tcp:192.168.63.172:6633
