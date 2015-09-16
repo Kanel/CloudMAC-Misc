@@ -9,7 +9,7 @@ HEADER_SIZE=128
 SAMPLING=32
 POLLING=1
 
-./init
+./init-switch
 
 echo "Guide us on the path that we may triumph over the enemy of our salvation and be with you in the end of ends on the planes of enlightenment."
 # Force the sFlow packets to be sent into the bridge.
